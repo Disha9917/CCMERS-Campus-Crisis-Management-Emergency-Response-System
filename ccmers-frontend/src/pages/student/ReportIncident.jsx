@@ -14,15 +14,17 @@ const ReportIncident = () => {
   
   const [severity, setSeverity] = useState('Low');
   const [category, setCategory] = useState('');
+  const [otherCategory, setOtherCategory] = useState('');
   const [location, setLocation] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const finalCategory = category === 'Other' ? (otherCategory.trim() ? `Other: ${otherCategory.trim()}` : 'Other') : category;
     addIncident({
       title,
-      category,
+      category: finalCategory,
       location,
       description,
       severity
@@ -50,7 +52,8 @@ const ReportIncident = () => {
                 { value: 'Medical Emergency', label: 'Medical Emergency' },
                 { value: 'Infrastructure / Power', label: 'Infrastructure / Power' },
                 { value: 'Maintenance', label: 'Maintenance' },
-                { value: 'Security', label: 'Security' }
+                { value: 'Security', label: 'Security' },
+                { value: 'Other', label: 'Other' }
               ]}
             />
             <Input 
@@ -61,6 +64,16 @@ const ReportIncident = () => {
               onChange={(e) => setLocation(e.target.value)}
             />
           </div>
+
+          {category === 'Other' && (
+            <Input 
+              label="Specify Other Incident Category" 
+              required 
+              placeholder="Describe the incident type (e.g. Noise Disturbance, Wild Animal, Gas Smell)" 
+              value={otherCategory}
+              onChange={(e) => setOtherCategory(e.target.value)}
+            />
+          )}
 
           <Input 
             label="Incident Title" 

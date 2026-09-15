@@ -73,7 +73,7 @@ function App() {
                   <Route path="dashboard" element={<ResponseDashboard />} />
                   <Route path="assigned-incidents" element={<AssignedIncidents />} />
                   <Route path="incident-details/:id" element={<ResponseIncidentDetails />} />
-                  <Route path="update-status" element={<Navigate to="/response/assigned-incidents" replace />} />
+                  <Route path="update-status" element={<UpdateStatus />} />
                   <Route path="update-status/:id" element={<UpdateStatus />} />
                 </Route>
               </Route>
@@ -85,7 +85,7 @@ function App() {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="all-incidents" element={<AllIncidents />} />
                   <Route path="incident-details/:id" element={<AdminIncidentDetails />} />
-                  <Route path="assign-incident" element={<Navigate to="/admin/all-incidents" replace />} />
+                  <Route path="assign-incident" element={<AssignIncident />} />
                   <Route path="assign-incident/:id" element={<AssignIncident />} />
                   <Route path="department-management" element={<DepartmentManagement />} />
                   <Route path="analytics" element={<Analytics />} />

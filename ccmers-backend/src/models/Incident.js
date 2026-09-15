@@ -14,16 +14,6 @@ const incidentSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: [
-      'Hazardous / Chemical',
-      'Security',
-      'Maintenance',
-      'Infrastructure',
-      'IT / Cyber',
-      'Medical Emergency',
-      'Fire Safety',
-      'Other'
-    ],
     default: 'Other'
   },
   location: {

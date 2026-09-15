@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { initialIncidents, initialDepartments } from '../data/mockIncidents';
+import { apiRequest } from '../api/axios';
 
 const IncidentContext = createContext();
 
@@ -23,6 +24,21 @@ export const IncidentProvider = ({ children }) => {
     }
   });
 
+  // Sync with API on mount or refresh
+  useEffect(() => {
+    const fetchApiData = async () => {
+      const incRes = await apiRequest('/incidents/my');
+      if (incRes.ok && incRes.data && incRes.data.data) {
+        setIncidents(incRes.data.data);
+      }
+      const deptRes = await apiRequest('/departments');
+      if (deptRes.ok && deptRes.data && deptRes.data.data) {
+        setDepartments(deptRes.data.data);
+      }
+    };
+    fetchApiData();
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('ccmers_incidents', JSON.stringify(incidents));
@@ -39,7 +55,6 @@ export const IncidentProvider = ({ children }) => {
     }
   }, [departments]);
   
-  // Basic user info for the session
   const [user, setUser] = useState({
     name: '',
     id: '',
@@ -48,24 +63,53 @@ export const IncidentProvider = ({ children }) => {
     phone: ''
   });
 
-  const addIncident = (incident) => {
+  const addIncident = async (incident) => {
+    const tempId = `INC-${Math.floor(1000 + Math.random() * 9000)}`;
     const newIncident = {
       ...incident,
-      id: `INC-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: tempId,
       status: 'Reported',
       date: new Date().toISOString().split('T')[0],
       dateTime: new Date().toLocaleString(),
       resolutionRemarks: '',
       resolutionTimeHours: 0
     };
+
+    // Optimistic UI update
     setIncidents(prev => [newIncident, ...prev]);
+
+    // Backend call
+    const res = await apiRequest('/incidents', 'POST', incident);
+    if (res.ok && res.data && res.data.data) {
+      setIncidents(prev => prev.map(i => i.id === tempId ? res.data.data : i));
+    }
+
     toast.success('Incident Reported Successfully!', { icon: '🚨' });
   };
 
-  const updateIncident = (id, updates) => {
+  const updateIncident = async (id, updates) => {
+    // Optimistic UI update
     setIncidents(prev => prev.map(inc => 
       inc.id === id ? { ...inc, ...updates } : inc
     ));
+
+    // Backend API status update
+    if (updates.status || updates.resolutionRemarks !== undefined) {
+      await apiRequest(`/incidents/${id}/status`, 'PATCH', {
+        status: updates.status,
+        resolutionRemarks: updates.resolutionRemarks,
+        resolutionTimeHours: updates.resolutionTimeHours
+      });
+    }
+
+    if (updates.assignedDepartment || updates.severity) {
+      await apiRequest(`/incidents/${id}/assign`, 'PATCH', {
+        assignedDepartment: updates.assignedDepartment,
+        severity: updates.severity,
+        assignedTo: updates.assignedTo
+      });
+    }
+
     toast.success(`Incident ${id} Updated!`, { icon: '✅' });
   };
 
